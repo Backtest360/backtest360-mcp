@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.backtest360/backtest360",
+  "title": "Backtest360",
+  "description": "MCP server exposing the Backtest360 engine API as tools for AI agents.",
+  "repository": {
+    "url": "https://github.com/Backtest360/backtest360-mcp",
+    "source": "github"
+  },
+  "version": "0.5.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.backtest360.com/mcp",
+      "headers": [
+        {
+          "name": "X-API-Key",
+          "description": "Backtest360 engine API key, sent to the hosted MCP server as X-API-Key. Get a free key at https://backtest360.com/api-access.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "backtest360-mcp",
+      "version": "0.5.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "BACKTEST360_API_KEY",
+          "description": "Backtest360 engine API key, sent to the engine as X-API-Key. Get a free key at https://backtest360.com/api-access.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GITLEAKS_VERSION: 8.27.2
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Unit tests (mock engine, no network)
+        run: pytest -q
+      - name: Adapter declares only its approved runtime dependencies
+        run: |
+          python - <<'EOF'
+          import re
+          from importlib.metadata import requires
+
+          # The adapter forwards requests and shapes responses — nothing more.
+          # Its runtime footprint is fixed to exactly this set; anything else
+          # (an inference SDK, a tokenizer, a model client) is rejected here.
+          # An allowlist is checked rather than a banned list because a banned
+          # list can never be exhaustive.
+          approved = {"mcp", "httpx"}
+          unapproved = []
+          for spec in requires("backtest360-mcp") or []:
+              requirement, _, marker = spec.partition(";")
+              # optional extras (test tooling) are gated behind a marker — skip them
+              if "extra" in marker:
+                  continue
+              name = re.split(r"[\s<>=!~;,\[(]", requirement.strip(), 1)[0].lower()
+              if name and name not in approved:
+                  unapproved.append(name)
+          assert not unapproved, (
+              f"unapproved runtime dependencies declared: {sorted(set(unapproved))}"
+          )
+          print("runtime dependencies are exactly the approved set:", sorted(approved))
+          EOF
+
+  surface:
+    name: surface
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Default-deny: every tracked file must match an entry in surface-allowlist.
+      - name: Surface allowlist
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            ok=0
+            while IFS= read -r glob; do
+              case "$glob" in ''|'#'*) continue ;; esac
+              # shellcheck disable=SC2254
+              case "$f" in $glob) ok=1; break ;; esac
+            done < surface-allowlist
+            if [ "$ok" -eq 0 ]; then
+              echo "::error file=$f::not in surface-allowlist"
+              fail=1
+            fi
+          done < <(git ls-files)
+          exit $fail
+
+      # The registry-listing metadata must always be publishable — validate it
+      # against the official MCP server schema so a malformed edit can never be
+      # pushed to the directory.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Validate server.json against the MCP registry schema
+        run: |
+          pip install check-jsonschema
+          check-jsonschema \
+            --schemafile https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json \
+            server.json
+
+      # Second line of defence against committed credentials.
+      - name: Install gitleaks
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan for secrets
+        run: gitleaks dir . --no-banner --redact --exit-code 1

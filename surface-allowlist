@@ -1,0 +1,50 @@
+# Public surface allowlist for the Backtest360 MCP server.
+#
+# This repository follows a default-deny model: every tracked file must match
+# exactly one pattern below. Anything not listed is rejected by the local git
+# hooks and by the allowlist check in the CI workflow. Patterns are matched
+# with shell `case` semantics, so `*` spans path separators.
+
+# Package source
+src/backtest360_mcp/*
+
+# Usage examples
+examples/*
+
+# Unit tests (mock engine, no network — exactly these six; new test files are
+# not auto-approved, and network/manual QA artifacts are not part of the surface)
+tests/conftest.py
+tests/test_engine_client.py
+tests/test_errors.py
+tests/test_prompts.py
+tests/test_shaping.py
+tests/test_tools.py
+
+# Root pytest config: import-isolation guard (asserts the suite imports this
+# checkout's package; never mutates sys.path)
+conftest.py
+
+# Governance
+SECURITY.md
+CONTRIBUTING.md
+.github/ISSUE_TEMPLATE/*
+
+# Packaging
+README.md
+LICENSE
+pyproject.toml
+CHANGELOG.md
+.gitignore
+
+# MCP Registry metadata (the official directory listing)
+server.json
+
+# CI workflow (exactly one; a second workflow is not approved). Releases are
+# hand-run (no auto-publish), so there is deliberately no release/publish workflow.
+.github/workflows/test.yml
+
+# Secret-scan config (generated)
+.gitleaks.toml
+
+# This allowlist
+surface-allowlist

@@ -1,0 +1,21 @@
+# gitleaks configuration.
+#
+# Generated file — do not edit by hand. Edit the shared source and re-run the sync.
+#
+# Extends the bundled default ruleset and allows documentation placeholders and
+# test fixtures that look key-shaped but are not secrets. A real API key is far
+# longer than either allowance below, so a genuine key committed by mistake is
+# still caught.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "b360_ doc placeholders and obviously-fake test fixtures"
+regexes = [
+  # Truncated placeholder in docs, e.g. "b360_a3f9...".
+  '''b360_[A-Za-z0-9_-]*\.\.\.''',
+  # Test fixtures such as "b360_resolved" — 20 chars or fewer after the prefix,
+  # anchored, so this can never match part of a real key.
+  '''^b360_[A-Za-z0-9_-]{1,20}$''',
+]

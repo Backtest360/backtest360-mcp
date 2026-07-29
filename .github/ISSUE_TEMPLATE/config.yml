@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & feedback
+    url: mailto:hello@backtest360.com
+    about: Not a bug or feature request? Email us — we read everything.

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "backtest360": {
+      "command": "backtest360-mcp",
+      "env": {
+        "BACKTEST360_API_KEY": "b360_..."
+      }
+    }
+  }
+}

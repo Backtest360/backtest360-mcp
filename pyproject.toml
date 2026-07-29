@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling>=1.30,<2", "hatch-vcs>=0.5,<1"]
+build-backend = "hatchling.build"
+
+[project]
+name = "backtest360-mcp"
+dynamic = ["version"]
+description = "MCP server exposing the Backtest360 engine API as tools for AI agents"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Backtest360", email = "hello@backtest360.com"},
+]
+requires-python = ">=3.10"
+keywords = [
+    "backtesting",
+    "trading",
+    "quantitative-finance",
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "api-client",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Typing :: Typed",
+]
+dependencies = [
+    "mcp>=2,<3",
+    "httpx>=0.27,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<10",
+    "pytest-asyncio>=0.23,<2",
+]
+
+[project.scripts]
+backtest360-mcp = "backtest360_mcp.server:main"
+
+[project.urls]
+Homepage = "https://backtest360.com"
+Repository = "https://github.com/Backtest360/backtest360-mcp"
+"API Reference" = "https://api.backtest360.com/docs"
+Changelog = "https://github.com/Backtest360/backtest360-mcp/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Backtest360/backtest360-mcp/issues"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+markers = [
+    "integration: tests that require network access or a live engine",
+]
+addopts = "-m 'not integration'"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/backtest360_mcp"]
+artifacts = ["src/backtest360_mcp/py.typed"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "pyproject.toml",
+]
